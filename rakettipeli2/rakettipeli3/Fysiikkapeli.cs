@@ -14,7 +14,8 @@ using Jypeli.Widgets;
         Vector nopeusOikea = new Vector(500, 0);
         AssaultRifle Ase1;
         AssaultRifle Ase2;
-        PhysicsObject raketti;
+        Raketti raketti;
+
         public override void Begin()
         {
 
@@ -33,7 +34,7 @@ using Jypeli.Widgets;
             olioidenSynnyttamisenNopeutin.Timeout += delegate
             {
                 if (synnytaOlioita.Interval - 0.1 <= 0) return;
-                synnytaOlioita.Interval -= 0.1;
+                synnytaOlioita.Interval -= 0.01;
             };
             olioidenSynnyttamisenNopeutin.Start();
 
@@ -50,12 +51,14 @@ using Jypeli.Widgets;
             palikka.Image = palikanKuva;
             palikka.X = RandomGen.NextDouble(-750, 750);
             palikka.Y = 500;
+            AddCollisionHandler(palikka, "raketti", CollisionHandler.DestroyObject);
             palikka.CanRotate = false;
             palikka.Angle = Angle.FromDegrees(180);
             Vector impulssi = new Vector(0, -100);
             palikka.Hit(impulssi);
             Add(palikka);
         }
+
         AssaultRifle LuoAse(Game peli, double x, double y)
         {
             AssaultRifle pelaajanAse;
@@ -70,10 +73,10 @@ using Jypeli.Widgets;
             return pelaajanAse;
 
         }
+
         public void LuoKentta()
         {
-            raketti = LuoRaketti(0, 0);
-            raketti.CanRotate = false;
+            raketti = LuoRaketti(0, 0, 0);
             Level.Background.Image = LoadImage("avaruus");
             Level.Size = new Vector(1500, 1000);
             SetWindowSize(1500, 1000);
@@ -81,11 +84,14 @@ using Jypeli.Widgets;
 
         }
 
-        PhysicsObject LuoRaketti(double x, double y)
+        Raketti LuoRaketti(double x, double y, int HP)
         {
-            PhysicsObject raketti = new PhysicsObject(100, 130);
+            Raketti raketti = new Raketti(100, 130, 3);
             Image raketinKuva = LoadImage("suunnitelma_Raketti2");
             raketti.Image = raketinKuva;
+            raketti.CanRotate = false;
+            raketti.Tag = "raketti";
+            AddCollisionHandler(raketti, "palikka", CollisionHandler.AddMeterValue(raketti.HP, -1));
             Add(raketti);
             return raketti;
         }
