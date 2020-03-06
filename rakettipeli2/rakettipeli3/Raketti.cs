@@ -10,6 +10,6 @@ using Jypeli;
             :base(leveys, korkeus)
         {
             HP = new IntMeter(elamat, 0, elamat);
-            HP.LowerLimit += delegate () { this.Destroy(); };
+            HP.LowerLimit += delegate () { this.Hit(new Vector(0, -300)); Timer.CreateAndStart(1.0, Destroy); };
         }
     }

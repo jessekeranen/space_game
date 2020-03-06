@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Jypeli;
 using Jypeli.Assets;
+using Jypeli.Effects;
 using Jypeli.Controls;
 using Jypeli.Widgets;
 
@@ -38,7 +39,7 @@ using Jypeli.Widgets;
             };
             olioidenSynnyttamisenNopeutin.Start();
 
-          
+            
 
             PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
@@ -55,6 +56,7 @@ using Jypeli.Widgets;
             palikka.CanRotate = false;
             palikka.Angle = Angle.FromDegrees(180);
             Vector impulssi = new Vector(0, -100);
+            palikka.Tag = "palikka";
             palikka.Hit(impulssi);
             Add(palikka);
         }
@@ -86,7 +88,7 @@ using Jypeli.Widgets;
 
         Raketti LuoRaketti(double x, double y, int HP)
         {
-            Raketti raketti = new Raketti(100, 130, 3);
+            Raketti raketti = new Raketti(100, 130, 2);
             Image raketinKuva = LoadImage("suunnitelma_Raketti2");
             raketti.Image = raketinKuva;
             raketti.CanRotate = false;
