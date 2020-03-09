@@ -9,6 +9,9 @@ using Jypeli.Widgets;
 
     public class rakettipeli3 : PhysicsGame
     {
+        const int Kentanleveys = 1500;
+        const int Kentankorkeus = 1000;
+        const int VIHUN_KOKO = 100;
         Vector nopeusYlos = new Vector(0, 500);
         Vector nopeusAlas = new Vector(0, -500);
         Vector nopeusVasen = new Vector(-500, 0);
@@ -16,6 +19,8 @@ using Jypeli.Widgets;
         AssaultRifle Ase1;
         AssaultRifle Ase2;
         Raketti raketti;
+        PhysicsObject[] taulukko = new PhysicsObject [Kentanleveys/VIHUN_KOKO];
+        
 
         public override void Begin()
         {
@@ -27,7 +32,10 @@ using Jypeli.Widgets;
 
             Timer synnytaOlioita = new Timer();
             synnytaOlioita.Interval = 1.0;
-            synnytaOlioita.Timeout += LuoSatunnainenVihollinen;
+            synnytaOlioita.Timeout += delegate
+            {
+                LuoSatunnainenVihollinen(taulukko);
+            };
             synnytaOlioita.Start();
 
             Timer olioidenSynnyttamisenNopeutin = new Timer();
@@ -45,21 +53,29 @@ using Jypeli.Widgets;
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
         }
-        void LuoSatunnainenVihollinen()
+
+
+        void LuoSatunnainenVihollinen(PhysicsObject[] taulukko)
         {
+            
             PhysicsObject palikka = new PhysicsObject(100, 100);
             Image palikanKuva = LoadImage("vihollisraketti2");
             palikka.Image = palikanKuva;
-            palikka.X = RandomGen.NextDouble(-750, 750);
-            palikka.Y = 500;
+            palikka.X = RandomGen.NextDouble(-Kentanleveys / 2, Kentanleveys / 2);
+            palikka.Y = Kentankorkeus;
             AddCollisionHandler(palikka, "raketti", CollisionHandler.DestroyObject);
             palikka.CanRotate = false;
             palikka.Angle = Angle.FromDegrees(180);
             Vector impulssi = new Vector(0, -100);
             palikka.Tag = "palikka";
             palikka.Hit(impulssi);
+            int i = RandomGen.NextInt(taulukko.Length - 1);
+            taulukko[i] = palikka;
+
             Add(palikka);
+            
         }
+
 
         AssaultRifle LuoAse(Game peli, double x, double y)
         {
@@ -76,15 +92,17 @@ using Jypeli.Widgets;
 
         }
 
+
         public void LuoKentta()
         {
             raketti = LuoRaketti(0, 0, 0);
             Level.Background.Image = LoadImage("avaruus");
-            Level.Size = new Vector(1500, 1000);
-            SetWindowSize(1500, 1000);
+            Level.Size = new Vector(Kentanleveys, Kentankorkeus);
+            SetWindowSize(Kentanleveys, Kentankorkeus);
             Level.CreateBorders();
 
         }
+
 
         Raketti LuoRaketti(double x, double y, int HP)
         {
@@ -97,6 +115,8 @@ using Jypeli.Widgets;
             Add(raketti);
             return raketti;
         }
+
+
         public void AsetaOhjaimet()
         {
             Keyboard.Listen(Key.Up, ButtonState.Down, AsetaNopeus, "Pelaaja: Liikuta rakettia ylös", raketti, nopeusYlos);
@@ -110,11 +130,15 @@ using Jypeli.Widgets;
             Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella, "Ammu", Ase1);
             Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella, "Ammu", Ase2);
         }
+
+
         void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
         {
             ammus.Destroy();
             kohde.Destroy();
         }
+
+
         void AmmuAseella(AssaultRifle ase)
         {
             PhysicsObject ammus = ase.Shoot();
@@ -126,6 +150,8 @@ using Jypeli.Widgets;
                 ammus.Color = Color.DarkBlue;
             }
         }
+
+
         void AsetaNopeus(PhysicsObject raketti, Vector nopeus)
         {
             if ((nopeus.Y < 0) && (raketti.Bottom < Level.Bottom))
