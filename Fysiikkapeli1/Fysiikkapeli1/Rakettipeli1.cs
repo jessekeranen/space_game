@@ -21,6 +21,8 @@ public class rakettipeli3 : PhysicsGame
     Raketti raketti;
     PhysicsObject alareuna;
     PhysicsObject[] vihollistaulukko = new PhysicsObject[13];
+    
+    
 
     public override void Begin()
     {
@@ -34,12 +36,15 @@ public class rakettipeli3 : PhysicsGame
 
     void Valikko()
     {
+        Font fontti = LoadFont("Starjhol.ttf");
         ClearAll();
         Level.Background.Image = LoadImage("avaruus");
         MultiSelectWindow alkuvalikko = new MultiSelectWindow("Main Menu", "Start", "Quit");
         Add(alkuvalikko);
         alkuvalikko.AddItemHandler(0, AloitaPeli);
         alkuvalikko.AddItemHandler(1, LopetaPeli);
+        alkuvalikko.Font = fontti;
+        
     }
 
 
@@ -59,11 +64,13 @@ public class rakettipeli3 : PhysicsGame
     void AloitaAlusta()
     {
         ClearAll();
+        Font fontti = LoadFont("Starjhol.ttf");
         Level.Background.Image = LoadImage("avaruus");
         MultiSelectWindow valikko = new MultiSelectWindow("Menu", "Restart", "Quit");
         Add(valikko);
         valikko.AddItemHandler(0, AloitaPeli);
         valikko.AddItemHandler(1, LopetaPeli);
+        valikko.Font = fontti;
     }
 
 
@@ -148,10 +155,8 @@ public class rakettipeli3 : PhysicsGame
             synnytaOlioita.Interval -= 0.01;
         };
         olioidenSynnyttamisenNopeutin.Start();
-
     }
   
-
  
     Raketti LuoRaketti(double x, double y, int HP)
     {
@@ -193,6 +198,7 @@ public class rakettipeli3 : PhysicsGame
         ammus.Destroy();
         kohde.Destroy();
     }
+
 
     void AmmuAseella(AssaultRifle ase, Raketti raketti)
     {
