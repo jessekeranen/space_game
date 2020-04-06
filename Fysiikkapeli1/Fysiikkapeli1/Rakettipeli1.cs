@@ -10,7 +10,7 @@ using Jypeli.Widgets;
 public class rakettipeli3 : PhysicsGame
 {
     const int kentanLeveys = 1200;
-    const int kentanKorkeus = 700;
+    const int kentanKorkeus = 900;
     int solunLeveys = kentanLeveys / 13;
     Vector nopeusYlos = new Vector(0, 1000);
     Vector nopeusAlas = new Vector(0, -1000);
@@ -19,36 +19,51 @@ public class rakettipeli3 : PhysicsGame
     AssaultRifle Ase1;
     AssaultRifle Ase2;
     Raketti raketti;
+    PhysicsObject alareuna;
     PhysicsObject[] vihollistaulukko = new PhysicsObject[13];
 
     public override void Begin()
     {
-
-        LuoKentta();
-        Ase1 = LuoAse(this, raketti.X - 40, raketti.Y - 55);
-        Ase2 = LuoAse(this, raketti.X + 40, raketti.Y - 55);
+        LuoKentta();  
         AsetaOhjaimet(raketti);
-        
+        Valikko();
 
-        Timer synnytaOlioita = new Timer();
-        synnytaOlioita.Interval = 1.0;
-        synnytaOlioita.Timeout += delegate
-        {
-            LuoSatunnainenVihollinen();
-        };
-        synnytaOlioita.Start();
+        PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");  
+    }
 
-        Timer olioidenSynnyttamisenNopeutin = new Timer();
-        olioidenSynnyttamisenNopeutin.Interval = 1.0;
-        olioidenSynnyttamisenNopeutin.Timeout += delegate
-        {
-            if (synnytaOlioita.Interval - 0.1 <= 0) return;
-            synnytaOlioita.Interval -= 0.01;
-        };
-        olioidenSynnyttamisenNopeutin.Start();
 
-        PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
-        Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
+    void Valikko()
+    {
+        ClearAll();
+        Level.Background.Image = LoadImage("avaruus");
+        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Main Menu", "Start", "Quit");
+        Add(alkuvalikko);
+        alkuvalikko.AddItemHandler(0, AloitaPeli);
+        alkuvalikko.AddItemHandler(1, LopetaPeli);
+    }
+
+
+    void AloitaPeli()
+    {
+        LuoKentta();
+        AsetaOhjaimet(raketti);
+    }
+
+
+    void LopetaPeli()
+    {
+        Exit();
+    }
+
+
+    void AloitaAlusta()
+    {
+        ClearAll();
+        Level.Background.Image = LoadImage("avaruus");
+        MultiSelectWindow valikko = new MultiSelectWindow("Menu", "Restart", "Quit");
+        Add(valikko);
+        valikko.AddItemHandler(0, AloitaPeli);
+        valikko.AddItemHandler(1, LopetaPeli);
     }
 
 
@@ -66,7 +81,8 @@ public class rakettipeli3 : PhysicsGame
         Vector impulssi = new Vector(0, -100);
         palikka.Tag = "palikka";
         palikka.Hit(impulssi);
-
+        AddCollisionHandler(palikka, VihuTormasi);
+    
         if (vihollistaulukko[j] == null)
         {
             vihollistaulukko[j] = palikka;
@@ -76,16 +92,15 @@ public class rakettipeli3 : PhysicsGame
         else
         {
             Timer poistaOliotaulukosta = new Timer();
-            poistaOliotaulukosta.Interval = 1.0;
+            poistaOliotaulukosta.Interval = 1.5;
             poistaOliotaulukosta.Timeout -= delegate
-            {
+            { 
                     vihollistaulukko[j] = null;
             };
             poistaOliotaulukosta.Start();
             vihollistaulukko[j] = palikka;
             Add(palikka);
-        }
-         
+        }    
     }
     
 
@@ -109,9 +124,33 @@ public class rakettipeli3 : PhysicsGame
         raketti = LuoRaketti(0, 0, 0);
         Level.Background.Image = LoadImage("avaruus");
         Level.Size = new Vector(kentanLeveys, kentanKorkeus);
-        SetWindowSize(kentanLeveys, kentanKorkeus);
-        Level.CreateBorders();
+        SetWindowSize(kentanLeveys, 700);
+        Level.CreateHorizontalBorders();
+        Level.CreateTopBorder();
+        alareuna = Level.CreateBottomBorder();
+
+        Ase1 = LuoAse(this, raketti.X - 40, raketti.Y - 55);
+        Ase2 = LuoAse(this, raketti.X + 40, raketti.Y - 55);
+
+        Timer synnytaOlioita = new Timer();
+        synnytaOlioita.Interval = 1.0;
+        synnytaOlioita.Timeout += delegate
+        {
+            LuoSatunnainenVihollinen();
+        };
+        synnytaOlioita.Start();
+        
+        Timer olioidenSynnyttamisenNopeutin = new Timer();
+        olioidenSynnyttamisenNopeutin.Interval = 1.0;
+        olioidenSynnyttamisenNopeutin.Timeout += delegate
+        {
+            if (synnytaOlioita.Interval - 0.1 <= 0) return;
+            synnytaOlioita.Interval -= 0.01;
+        };
+        olioidenSynnyttamisenNopeutin.Start();
+
     }
+  
 
  
     Raketti LuoRaketti(double x, double y, int HP)
@@ -122,12 +161,16 @@ public class rakettipeli3 : PhysicsGame
         raketti.CanRotate = false;
         raketti.Tag = "raketti";
         raketti.LinearDamping = 0.955;
+        raketti.Destroyed += delegate ()
+        {
+            AloitaAlusta();
+        };
         AddCollisionHandler(raketti, "palikka", CollisionHandler.AddMeterValue(raketti.HP, -1));
         AddCollisionHandler(raketti, "palikka", CollisionHandler.DestroyTarget);
         Add(raketti);
         return raketti;
     }
-
+    
 
     public void AsetaOhjaimet(Raketti raketti)
     {
@@ -141,6 +184,7 @@ public class rakettipeli3 : PhysicsGame
             Keyboard.Listen(Key.Right, ButtonState.Released, AsetaNopeus, null, raketti, Vector.Zero);
             Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella , "Ammu", Ase1, raketti);
             Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella , "Ammu", Ase2, raketti);
+            Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
 
 
@@ -153,16 +197,28 @@ public class rakettipeli3 : PhysicsGame
     void AmmuAseella(AssaultRifle ase, Raketti raketti)
     {
         PhysicsObject ammus = ase.Shoot();
+        
+
         if (ammus != null)
         {
+            ammus.Color = Color.DarkBlue;
             ammus.Size *= 0.5;
             ammus.MaximumLifetime = TimeSpan.FromSeconds(2.0);
-            ammus.Color = Color.DarkBlue;
+            
         }
-        else if(raketti.HP == 0)
+        if(raketti.HP == 0)
         {
             Ase1.Destroy();
             Ase2.Destroy();
+        }
+    }
+
+
+    void VihuTormasi(PhysicsObject vihu, PhysicsObject kohde)
+    {
+        if(kohde == alareuna)
+        {
+            vihu.Destroy();
         }
     }
 
