@@ -23,10 +23,10 @@
     <None Update="Content\vihu.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\Starjhol.ttf">
+    <None Update="Content\STJEDISE.TTF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Content\valikko.png">
+    <None Update="Content\valikko5.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

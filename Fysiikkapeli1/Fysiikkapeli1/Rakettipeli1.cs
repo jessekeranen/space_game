@@ -21,37 +21,124 @@ public class rakettipeli3 : PhysicsGame
     Raketti raketti;
     PhysicsObject alareuna;
     PhysicsObject[] vihollistaulukko = new PhysicsObject[13];
-    
+    List<Label> valikonKohdat;
+    IntMeter pisteLaskuri;
+    ScoreList topLista = new ScoreList(10, false, 0);
     
 
     public override void Begin()
     {
         LuoKentta();  
         AsetaOhjaimet(raketti);
+        
         Valikko();
 
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");  
+        
     }
 
 
     void Valikko()
     {
-
-        Font fontti = LoadFont("Starjhol.ttf");
         ClearAll();
         Level.Background.Image = LoadImage("avaruus");
-        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Main Menu", "Start", "Quit");
-        Add(alkuvalikko);
-        alkuvalikko.AddItemHandler(0, AloitaPeli);
-        alkuvalikko.AddItemHandler(1, LopetaPeli);
-        alkuvalikko.Image = LoadImage("valikko.png");
-        alkuvalikko.Font = fontti;
+        GameObject valikko = new GameObject(320,280);
+        valikko.Image  = LoadImage("valikko5.png");
+        Add(valikko);
         
+        valikonKohdat = new List<Label>();
+        Label kohta1 = LuoKohdat("Start a new game");
+        kohta1.Position = new Vector(0, 45);
+        kohta1.TextScale = new Vector(1.5, 3);
+
+        Label kohta2 = LuoKohdat("High Scores");
+        kohta2.Position = new Vector(0, -5);
+
+        Label kohta3 = LuoKohdat("Exit Game");
+        kohta3.Position = new Vector(0, -55);
+        
+
+        foreach (Label valikonKohta in valikonKohdat)
+        {
+            Add(valikonKohta);
+        }
+        AsetaOhjaimet(raketti);
+        Mouse.ListenOn(kohta1, MouseButton.Left, ButtonState.Pressed, AloitaPeli, null);
+        Mouse.ListenOn(kohta2, MouseButton.Left, ButtonState.Pressed, ParhaatPisteetNaytto, null);
+        Mouse.ListenOn(kohta3, MouseButton.Left, ButtonState.Pressed, LopetaPeli, null);
+        Mouse.ListenMovement(1.0, ValikossaLiikkuminen, null);
+    }
+
+
+    void LuoPistelaskuri()
+    {
+        pisteLaskuri = new IntMeter(0);
+        Label pistenaytto = new Label();
+        pistenaytto.Font = LoadFont("STJEDISE.TTF");
+        pistenaytto.TextColor = Color.Yellow;
+        pistenaytto.Position = new Vector((kentanLeveys / 2) - 100, (kentanKorkeus / 2) - 150);
+        pistenaytto.BindTo(pisteLaskuri);
+        Add(pistenaytto);
+    }
+
+
+    void ParhaatPisteetNaytto()
+    {
+        HighScoreWindow topIkkuna = new HighScoreWindow(
+                              "Parhaat pisteet",
+                              topLista);
+        topIkkuna.Closed += TallennaPisteet;
+        Add(topIkkuna);
+    }
+
+
+    void ParhaatPisteetLisays()
+    {
+        HighScoreWindow topIkkuna = new HighScoreWindow("Parhaat pisteet","Pääsit listalle pisteillä %p!", topLista, pisteLaskuri);
+        topIkkuna.Closed +=TallennaPisteet;
+        
+        Valikko();
+        Add(topIkkuna);
+    }
+
+
+    void TallennaPisteet(Window sender)
+    {
+        DataStorage.Save<ScoreList>(topLista, "pisteet.xml");
+    }
+
+
+    void ValikossaLiikkuminen(AnalogState hiirenTila)
+    {
+        foreach (Label kohta in valikonKohdat)
+        {
+            if (Mouse.IsCursorOn(kohta))
+            {
+                kohta.TextColor = Color.Black;
+            }
+            else
+            {
+                kohta.TextColor = Color.Yellow;
+            }
+        }
+    }
+
+
+    public Label LuoKohdat(string teksti)
+    {
+        Font fontti = LoadFont("STJEDISE.TTF");
+        Label kohta = new Label(teksti);
+        kohta.Font = fontti;
+        kohta.TextColor = Color.Yellow;
+        kohta.TextScale = new Vector(2, 3);
+        valikonKohdat.Add(kohta);
+        return kohta;
     }
 
 
     void AloitaPeli()
     {
+        ClearAll();
         LuoKentta();
         AsetaOhjaimet(raketti);
     }
@@ -66,13 +153,22 @@ public class rakettipeli3 : PhysicsGame
     void AloitaAlusta()
     {
         ClearAll();
-        Font fontti = LoadFont("Starjhol.ttf");
         Level.Background.Image = LoadImage("avaruus");
-        MultiSelectWindow valikko = new MultiSelectWindow("Menu", "Restart", "Quit");
-        Add(valikko);
-        valikko.AddItemHandler(0, AloitaPeli);
-        valikko.AddItemHandler(1, LopetaPeli);
-        valikko.Font = fontti;
+        Label tekstikentta = new Label();
+        Add(tekstikentta);
+        tekstikentta.Font = LoadFont("STJEDISE.TTF");
+        tekstikentta.TextColor = Color.Yellow;
+        tekstikentta.Text = "You lost";
+        tekstikentta.TextScale = new Vector(3, 3);
+
+        Timer tappio = new Timer();
+        tappio.Interval = 2.0;
+        tappio.Timeout += delegate
+        {
+            tekstikentta.Clear();
+            ParhaatPisteetLisays();
+        };
+        tappio.Start();
     }
 
 
@@ -101,13 +197,14 @@ public class rakettipeli3 : PhysicsGame
         else
         {
             Timer poistaOliotaulukosta = new Timer();
-            poistaOliotaulukosta.Interval = 1.5;
+            poistaOliotaulukosta.Interval = 1.0;
             poistaOliotaulukosta.Timeout -= delegate
             { 
                     vihollistaulukko[j] = null;
+                    vihollistaulukko[j] = palikka;
             };
             poistaOliotaulukosta.Start();
-            vihollistaulukko[j] = palikka;
+            
             Add(palikka);
         }    
     }
@@ -130,6 +227,8 @@ public class rakettipeli3 : PhysicsGame
 
     public void LuoKentta()
     {
+        LuoPistelaskuri();
+        topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
         raketti = LuoRaketti(0, 0, 0);
         Level.Background.Image = LoadImage("avaruus");
         Level.Size = new Vector(kentanLeveys, kentanKorkeus);
@@ -197,6 +296,7 @@ public class rakettipeli3 : PhysicsGame
 
     void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
     {
+        pisteLaskuri.Value += 1;
         ammus.Destroy();
         kohde.Destroy();
     }
