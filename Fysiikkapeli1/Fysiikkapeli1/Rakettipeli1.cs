@@ -36,6 +36,7 @@ public class rakettipeli3 : PhysicsGame
 
     void Valikko()
     {
+
         Font fontti = LoadFont("Starjhol.ttf");
         ClearAll();
         Level.Background.Image = LoadImage("avaruus");
@@ -43,6 +44,7 @@ public class rakettipeli3 : PhysicsGame
         Add(alkuvalikko);
         alkuvalikko.AddItemHandler(0, AloitaPeli);
         alkuvalikko.AddItemHandler(1, LopetaPeli);
+        alkuvalikko.Image = LoadImage("valikko.png");
         alkuvalikko.Font = fontti;
         
     }
