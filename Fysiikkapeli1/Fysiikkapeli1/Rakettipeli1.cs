@@ -93,10 +93,17 @@ public class rakettipeli3 : PhysicsGame
     /// </summary>
     void ParhaatPisteetNaytto()
     {
+        ClearAll();
+        Level.Background.Image = LoadImage("avaruus");
         HighScoreWindow topIkkuna = new HighScoreWindow(
                               "Parhaat pisteet",
                               topLista);
         topIkkuna.Closed += TallennaPisteet;
+        topIkkuna.Closed += delegate
+        {
+
+            Valikko();
+        };
         Add(topIkkuna);
     }
 
@@ -106,10 +113,15 @@ public class rakettipeli3 : PhysicsGame
     /// </summary>
     void ParhaatPisteetLisays()
     {
+        ClearAll();
+        Level.Background.Image = LoadImage("avaruus");
+
         HighScoreWindow topIkkuna = new HighScoreWindow("High score","Your points %p!", topLista, pisteLaskuri);
         topIkkuna.Closed +=TallennaPisteet;
-        
-        Valikko();
+        topIkkuna.Closed += delegate
+         {
+             Valikko();
+         };
         Add(topIkkuna);
     }
 
