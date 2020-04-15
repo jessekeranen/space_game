@@ -35,7 +35,7 @@
     <None Update="Content\kivi.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Content\kivi2.png">
+    <None Update="Content\kivi3.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

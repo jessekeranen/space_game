@@ -27,9 +27,7 @@ public class rakettipeli3 : PhysicsGame
     List<Label> valikonKohdat;
     IntMeter pisteLaskuri;
     ScoreList topLista = new ScoreList(10, false, 0);
-    int vihollisSumma = 0;
-    PhysicsObject kivi;
-    PhysicsObject palikka;
+    int vihollissumma = 0;
     
 
     public override void Begin()
@@ -234,7 +232,7 @@ public class rakettipeli3 : PhysicsGame
         int i = RandomGen.NextInt(-9, 9);
         int j = i + 9;
             
-        palikka = Viholliset(70, 70, "palikka", 180, false);
+        PhysicsObject palikka = Viholliset(70, 70, "palikka", 180, false, false);
         Image palikanKuva = LoadImage("vihu");
         palikka.Image = palikanKuva;
         palikka.X = ((i * solunLeveys) + solunLeveys / 2);
@@ -267,8 +265,8 @@ public class rakettipeli3 : PhysicsGame
         int i = RandomGen.NextInt(-9, 9);
         int j = i + 9;
 
-        kivi = Viholliset(70, 70, "kivi", 0, true);
-        Image kivenKuva = LoadImage("kivi2");
+        PhysicsObject kivi = Viholliset(60, 60, "kivi", 0, true, true);
+        Image kivenKuva = LoadImage("kivi3");
         kivi.Image = kivenKuva;
         kivi.X = ((i * solunLeveys) + solunLeveys / 2);
 
@@ -291,12 +289,21 @@ public class rakettipeli3 : PhysicsGame
         }
     }
         
-  
-    public PhysicsObject Viholliset(double leveys, double korkeus, string tag, int kulma, bool arvo)
+
+    /// <summary>
+    /// Vihollisten luonti aliohjelma.
+    /// </summary>
+    /// <param name="leveys">Vihollisen leveys</param>
+    /// <param name="korkeus">Vihollisen koreus</param>
+    /// <param name="tag">Vihollisen Tag</param>
+    /// <param name="kulma">Kulma, jossa vihollisen kuva liitetään</param>
+    /// <param name="arvo">Jättääkö törmäykset huomioimatta</param>
+    /// <returns></returns>
+    public PhysicsObject Viholliset(double leveys, double korkeus, string tag, int kulma, bool arvo, bool pyoriiko)
     {
         PhysicsObject vihollinen = new PhysicsObject(leveys, korkeus);
         vihollinen.Y = kentanKorkeus / 2;
-        vihollinen.CanRotate = false;
+        vihollinen.CanRotate = pyoriiko;
         vihollinen.Angle = Angle.FromDegrees(kulma);
         vihollinen.Tag = tag;
         Vector impulssi = new Vector(0, -100);
@@ -313,7 +320,7 @@ public class rakettipeli3 : PhysicsGame
     /// <param name="peli">Peli, johon aseet luodaan</param>
     /// <param name="x">Aseen x-koordinaatti</param>
     /// <param name="y">Aseen y-koodinaatti</param>
-    /// <returns></returns>
+    /// <returns>Aseen</returns>
     AssaultRifle LuoAse(Game peli, double x, double y)
     {
         AssaultRifle pelaajanAse;
@@ -353,15 +360,14 @@ public class rakettipeli3 : PhysicsGame
         synnytaOlioita.Interval = 1.0;
         synnytaOlioita.Timeout += delegate
         {
-            if (vihollisSumma % 3 == 0)
+            vihollissumma += 1;
+            if (vihollissumma % 3 == 0)
             {
                 LuoSatunnainenKivi();
-                vihollisSumma += 1;
             }
             else
             {
                 LuoSatunnainenVihollinen();
-                vihollisSumma += 1;
             }
         };
         synnytaOlioita.Start();
