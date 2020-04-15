@@ -27,6 +27,9 @@ public class rakettipeli3 : PhysicsGame
     List<Label> valikonKohdat;
     IntMeter pisteLaskuri;
     ScoreList topLista = new ScoreList(10, false, 0);
+    int vihollisSumma = 0;
+    PhysicsObject kivi;
+    PhysicsObject palikka;
     
 
     public override void Begin()
@@ -224,29 +227,23 @@ public class rakettipeli3 : PhysicsGame
 
 
     /// <summary>
-    /// ALiohjelma, joka luo vihollisia kiihtyvällä tahdilla.
+    /// ALiohjelma, joka luo vihollisia.
     /// </summary>
-    void LuoSatunnainenVihollinen(PhysicsObject[] vihollistaulukko)
+    void LuoSatunnainenVihollinen()
     {
         int i = RandomGen.NextInt(-9, 9);
         int j = i + 9;
-        PhysicsObject palikka = new PhysicsObject(70, 70);
+            
+        palikka = Viholliset(70, 70, "palikka", 180, false);
         Image palikanKuva = LoadImage("vihu");
         palikka.Image = palikanKuva;
-        palikka.X = ((i*solunLeveys)+solunLeveys/2);
-        palikka.Y = kentanKorkeus/2;
-        palikka.CanRotate = false;
-        palikka.Angle = Angle.FromDegrees(180);
-        Vector impulssi = new Vector(0, -100);
-        palikka.Tag = "palikka";
-        palikka.Hit(impulssi);
-        AddCollisionHandler(palikka, VihuTormasi);
+        palikka.X = ((i * solunLeveys) + solunLeveys / 2);
 
         Timer poistaOliotaulukosta = new Timer();
         poistaOliotaulukosta.Interval = 5.0;
         poistaOliotaulukosta.Timeout += delegate
-        { 
-                vihollistaulukko[j] = null;     
+        {
+            vihollistaulukko[j] = null;
         };
         poistaOliotaulukosta.Start();
 
@@ -255,12 +252,58 @@ public class rakettipeli3 : PhysicsGame
             vihollistaulukko[j] = palikka;
             Add(palikka);
         }
-        else if (vihollistaulukko[j] != null) 
+        else if (vihollistaulukko[j] != null)
         {
             palikka.Destroy();
         }
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, joka luo tuhoutumattomia kiviä
+    /// </summary>
+    void LuoSatunnainenKivi()
+    {
+        int i = RandomGen.NextInt(-9, 9);
+        int j = i + 9;
+
+        kivi = Viholliset(70, 70, "kivi", 0, true);
+        Image kivenKuva = LoadImage("kivi2");
+        kivi.Image = kivenKuva;
+        kivi.X = ((i * solunLeveys) + solunLeveys / 2);
+
+        Timer poistaOliotaulukosta = new Timer();
+        poistaOliotaulukosta.Interval = 5.0;
+        poistaOliotaulukosta.Timeout += delegate
+        {
+            vihollistaulukko[j] = null;
+        };
+        poistaOliotaulukosta.Start();
+
+        if (vihollistaulukko[j] == null)
+        {
+            vihollistaulukko[j] = kivi;
+            Add(kivi);
+        }
+        else if (vihollistaulukko[j] != null)
+        {
+            kivi.Destroy();
+        }
+    }
         
-        
+  
+    public PhysicsObject Viholliset(double leveys, double korkeus, string tag, int kulma, bool arvo)
+    {
+        PhysicsObject vihollinen = new PhysicsObject(leveys, korkeus);
+        vihollinen.Y = kentanKorkeus / 2;
+        vihollinen.CanRotate = false;
+        vihollinen.Angle = Angle.FromDegrees(kulma);
+        vihollinen.Tag = tag;
+        Vector impulssi = new Vector(0, -100);
+        vihollinen.Hit(impulssi);
+        vihollinen.IgnoresCollisionResponse = arvo;
+        AddCollisionHandler(vihollinen, VihuTormasi);
+        return vihollinen;
     }
 
 
@@ -291,22 +334,7 @@ public class rakettipeli3 : PhysicsGame
     /// </summary>
     public void LuoKentta()
     {
-        Timer synnytaOlioita = new Timer();
-        synnytaOlioita.Interval = 1.0;
-        synnytaOlioita.Timeout += delegate
-        {
-                LuoSatunnainenVihollinen(vihollistaulukko);
-        };
-        synnytaOlioita.Start();
-
-        Timer olioidenSynnyttamisenNopeutin = new Timer();
-        olioidenSynnyttamisenNopeutin.Interval = 1.0;
-        olioidenSynnyttamisenNopeutin.Timeout += delegate
-        {
-            if (synnytaOlioita.Interval - 0.1 <= 0) return;
-            synnytaOlioita.Interval -= 0.01;
-        };
-        olioidenSynnyttamisenNopeutin.Start();
+        
 
         LuoPistelaskuri();
         topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
@@ -320,6 +348,33 @@ public class rakettipeli3 : PhysicsGame
 
         Ase1 = LuoAse(this, raketti.X - 30, raketti.Y - 45);
         Ase2 = LuoAse(this, raketti.X + 30, raketti.Y - 45);
+
+        Timer synnytaOlioita = new Timer();
+        synnytaOlioita.Interval = 1.0;
+        synnytaOlioita.Timeout += delegate
+        {
+            if (vihollisSumma % 3 == 0)
+            {
+                LuoSatunnainenKivi();
+                vihollisSumma += 1;
+            }
+            else
+            {
+                LuoSatunnainenVihollinen();
+                vihollisSumma += 1;
+            }
+        };
+        synnytaOlioita.Start();
+
+        Timer olioidenSynnyttamisenNopeutin = new Timer();
+        olioidenSynnyttamisenNopeutin.Interval = 1.0;
+        olioidenSynnyttamisenNopeutin.Timeout += delegate
+        {
+            if (synnytaOlioita.Interval - 0.1 <= 0) return;
+            synnytaOlioita.Interval -= 0.01;
+        };
+        olioidenSynnyttamisenNopeutin.Start();
+
     }
   
 
@@ -345,6 +400,8 @@ public class rakettipeli3 : PhysicsGame
 
         AddCollisionHandler(raketti, "palikka", CollisionHandler.AddMeterValue(raketti.HP, -1));
         AddCollisionHandler(raketti, "palikka", CollisionHandler.DestroyTarget);
+        AddCollisionHandler(raketti, "kivi", CollisionHandler.AddMeterValue(raketti.HP, -1));
+        AddCollisionHandler(raketti, "kivi", CollisionHandler.DestroyTarget);
         Add(raketti);
         return raketti;
     }
@@ -364,8 +421,8 @@ public class rakettipeli3 : PhysicsGame
         Keyboard.Listen(Key.Left, ButtonState.Released, AsetaNopeus, null, raketti, Vector.Zero);
         Keyboard.Listen(Key.Right, ButtonState.Down, AsetaNopeus, "Pelaaja: Liikuta rakettia oikalle", raketti, nopeusOikea);
         Keyboard.Listen(Key.Right, ButtonState.Released, AsetaNopeus, null, raketti, Vector.Zero);
-        Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella, "Ammu", Ase1, raketti);
-        Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella, "Ammu", Ase2, raketti);
+        Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella, "Ammu", Ase1, raketti, "ammus");
+        Keyboard.Listen(Key.Space, ButtonState.Down, AmmuAseella, "Ammu", Ase2, raketti, "ammus");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
     }
@@ -378,9 +435,16 @@ public class rakettipeli3 : PhysicsGame
     /// <param name="kohde">Kohde, jota ammutaan</param>
     void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
     {
-        pisteLaskuri.Value += 1;
-        ammus.Destroy();
-        kohde.Destroy();
+        if (kohde.Tag == "palikka")
+        {
+            ammus.Destroy();
+            kohde.Destroy();
+            pisteLaskuri.Value += 1;
+        }   
+        if(kohde.Tag != "palikka")
+        {
+            ammus.Destroy();
+        }
     }
 
 
@@ -389,7 +453,7 @@ public class rakettipeli3 : PhysicsGame
     /// </summary>
     /// <param name="ase">Ase, jolla ammutaan</param>
     /// <param name="raketti">Raketti, jolla pelaaja pelaa</param>
-    void AmmuAseella(AssaultRifle ase, Raketti raketti)
+    void AmmuAseella(AssaultRifle ase, Raketti raketti, string tag)
     {
         PhysicsObject ammus = ase.Shoot();
 
