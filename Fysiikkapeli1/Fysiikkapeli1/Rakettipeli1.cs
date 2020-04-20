@@ -28,7 +28,6 @@ public class rakettipeli3 : PhysicsGame
     IntMeter pisteLaskuri;
     ScoreList topLista = new ScoreList(10, false, 0);
     int vihollissumma = 0;
-    
 
     public override void Begin()
     {
@@ -60,7 +59,6 @@ public class rakettipeli3 : PhysicsGame
         Label kohta3 = LuoKohdat("Exit Game");
         kohta3.Position = new Vector(0, -55);
         
-
         foreach (Label valikonKohta in valikonKohdat)
         {
             Add(valikonKohta);
@@ -250,7 +248,7 @@ public class rakettipeli3 : PhysicsGame
         palikka.X = ((i * solunLeveys) + solunLeveys / 2);
 
         Timer poistaOliotaulukosta = new Timer();
-        poistaOliotaulukosta.Interval = 5.0;
+        poistaOliotaulukosta.Interval = 1.0;
         poistaOliotaulukosta.Timeout += delegate
         {
             vihollistaulukko[j] = null;
@@ -283,7 +281,7 @@ public class rakettipeli3 : PhysicsGame
         kivi.X = ((i * solunLeveys) + solunLeveys / 2);
 
         Timer poistaOliotaulukosta = new Timer();
-        poistaOliotaulukosta.Interval = 5.0;
+        poistaOliotaulukosta.Interval = 1.0;
         poistaOliotaulukosta.Timeout += delegate
         {
             vihollistaulukko[j] = null;
@@ -353,8 +351,6 @@ public class rakettipeli3 : PhysicsGame
     /// </summary>
     public void LuoKentta()
     {
-        
-
         LuoPistelaskuri();
         topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
         raketti = LuoRaketti(0, 0, 0);
@@ -392,7 +388,6 @@ public class rakettipeli3 : PhysicsGame
             synnytaOlioita.Interval -= 0.01;
         };
         olioidenSynnyttamisenNopeutin.Start();
-
     }
   
 
@@ -504,7 +499,7 @@ public class rakettipeli3 : PhysicsGame
 
 
     /// <summary>
-    /// Aliohjelm, jolla asetetaan nopeudet raketin liikkeille.
+    /// Aliohjelma, jolla asetetaan nopeudet raketin liikkeille.
     /// </summary>
     /// <param name="raketti">Pelaajan raketti</param>
     /// <param name="nopeus">Nopeus, jolla raketti kiihtyy</param>
