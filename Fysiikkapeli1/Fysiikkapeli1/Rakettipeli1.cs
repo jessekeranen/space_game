@@ -7,14 +7,17 @@ using Jypeli.Controls;
 using Jypeli.Widgets;
 
 
+/// @author Jesse Keränen jeratake
+/// @version 21.4.2020
+/// 
 /// <summary>
 /// Peli, jossa on tarkoitus tuhota vihollisia raketilla.
 /// </summary>
 public class rakettipeli3 : PhysicsGame
 {
-    const int kentanLeveys = 1300;
-    const int kentanKorkeus = 887;
-    int solunLeveys = kentanLeveys / 19;
+    const int KENTÄN_LEVEYS = 1300;
+    const int KENTÄN_KORKEUS = 887;
+    int solunLeveys = KENTÄN_LEVEYS / 19;
     Vector nopeusYlos = new Vector(0, 1000);
     Vector nopeusAlas = new Vector(0, -1000);
     Vector nopeusVasen = new Vector(-1000, 0);
@@ -28,6 +31,10 @@ public class rakettipeli3 : PhysicsGame
     IntMeter pisteLaskuri;
     ScoreList topLista = new ScoreList(10, false, 0);
     int vihollissumma = 0;
+    Vector valikonSkaalaus1 = new Vector(1.4, 2.9);
+    Vector valikonSkaalaus2 = new Vector(1.5, 3.0);
+    Vector valikonSkaalaus3 = new Vector(1.9, 2.9);
+    Vector valikonSkaalaus4 = new Vector(2.0, 3.0);
 
     public override void Begin()
     {
@@ -63,6 +70,7 @@ public class rakettipeli3 : PhysicsGame
         {
             Add(valikonKohta);
         }
+
         AsetaOhjaimet(raketti);
         Mouse.ListenOn(kohta1, MouseButton.Left, ButtonState.Pressed, AloitaPeli, null);
         Mouse.ListenOn(kohta2, MouseButton.Left, ButtonState.Pressed, ParhaatPisteetNaytto, null);
@@ -80,7 +88,7 @@ public class rakettipeli3 : PhysicsGame
         Label pistenaytto = new Label();
         pistenaytto.Font = LoadFont("STJEDISE.TTF");
         pistenaytto.TextColor = Color.Yellow;
-        pistenaytto.Position = new Vector((kentanLeveys / 2) - 100, (kentanKorkeus / 2) - 150);
+        pistenaytto.Position = new Vector((KENTÄN_LEVEYS / 2) - 100, (KENTÄN_KORKEUS / 2) - 150);
         pistenaytto.BindTo(pisteLaskuri);
         Add(pistenaytto);
     }
@@ -127,7 +135,7 @@ public class rakettipeli3 : PhysicsGame
     /// <summary>
     /// Aliohjelma, jolla tallennetaan pisteet parhaiden pisteiden listalle.
     /// </summary>
-    /// <param name="sender"></param>
+    /// <param name="sender">Ei käytössä</param>
     void TallennaPisteet(Window sender)
     {
         DataStorage.Save<ScoreList>(topLista, "pisteet.xml");
@@ -146,29 +154,41 @@ public class rakettipeli3 : PhysicsGame
             {
                 if (Mouse.IsCursorOn(kohdat[i]))
                 {
-                    kohdat[i].TextColor = Color.Black;
-                    kohdat[i].TextScale = new Vector(1.9, 2.9);
+                    kohdat[i] = ValikonKohtienMuutokset(Color.Black, valikonSkaalaus4, valikonKohdat, i);
                 }
                 else
                 {
-                    kohdat[i].TextColor = Color.Yellow;
-                    kohdat[i].TextScale = new Vector(2.0, 3.0);
+                    kohdat[i] = ValikonKohtienMuutokset(Color.Yellow, valikonSkaalaus3, valikonKohdat, i);
                 }
             }
             else
             {
                 if (Mouse.IsCursorOn(kohdat[i]))
                 {
-                    kohdat[i].TextColor = Color.Black;
-                    kohdat[i].TextScale = new Vector(1.4, 2.9);
+                    kohdat[i] = ValikonKohtienMuutokset(Color.Black, valikonSkaalaus1, valikonKohdat, i);
                 }
                 else
                 {
-                    kohdat[i].TextColor = Color.Yellow;
-                    kohdat[i].TextScale = new Vector(1.5, 3.0);
+                    kohdat[i] = ValikonKohtienMuutokset(Color.Yellow, valikonSkaalaus2, valikonKohdat, i);
                 }
             }
         }
+    }
+
+
+    /// <summary>
+    /// Aliohjelma, jolla valittua valikonkohtaa muokataan
+    /// </summary>
+    /// <param name="vari">Valikon kohdan väri</param>
+    /// <param name="skaalaus">Valikon kohdan koko</param>
+    /// <param name="kohdat">Valikon kohtien lista</param>
+    /// <param name="kohta">Käsiteltävä valikon kohta</param>
+    /// <returns>Valikon kohdan</returns>
+    public Label ValikonKohtienMuutokset(Color vari, Vector skaalaus, List<Label> kohdat, int kohta)
+    {
+        kohdat[kohta].TextColor = vari;
+        kohdat[kohta].TextScale = skaalaus;
+        return kohdat[kohta];
     }
 
 
@@ -235,84 +255,26 @@ public class rakettipeli3 : PhysicsGame
 
 
     /// <summary>
-    /// ALiohjelma, joka luo vihollisia.
+    /// Aliohjelma, jolla luodaan viholliset
     /// </summary>
-    void LuoSatunnainenVihollinen()
-    {
-        int i = RandomGen.NextInt(-9, 9);
-        int j = i + 9;
-            
-        PhysicsObject palikka = Viholliset(70, 70, "palikka", 180, false, false);
-        Image palikanKuva = LoadImage("vihu");
-        palikka.Image = palikanKuva;
-        palikka.X = ((i * solunLeveys) + solunLeveys / 2);
-
-        Timer poistaOliotaulukosta = new Timer();
-        poistaOliotaulukosta.Interval = 1.0;
-        poistaOliotaulukosta.Timeout += delegate
-        {
-            vihollistaulukko[j] = null;
-        };
-        poistaOliotaulukosta.Start();
-
-        if (vihollistaulukko[j] == null)
-        {
-            vihollistaulukko[j] = palikka;
-            Add(palikka);
-        }
-        else if (vihollistaulukko[j] != null)
-        {
-            palikka.Destroy();
-        }
-    }
-
-
-    /// <summary>
-    /// Aliohjelma, joka luo tuhoutumattomia kiviä
-    /// </summary>
-    void LuoSatunnainenKivi()
-    {
-        int i = RandomGen.NextInt(-9, 9);
-        int j = i + 9;
-
-        PhysicsObject kivi = Viholliset(60, 60, "kivi", 0, true, true);
-        Image kivenKuva = LoadImage("kivi3");
-        kivi.Image = kivenKuva;
-        kivi.X = ((i * solunLeveys) + solunLeveys / 2);
-
-        Timer poistaOliotaulukosta = new Timer();
-        poistaOliotaulukosta.Interval = 1.0;
-        poistaOliotaulukosta.Timeout += delegate
-        {
-            vihollistaulukko[j] = null;
-        };
-        poistaOliotaulukosta.Start();
-
-        if (vihollistaulukko[j] == null)
-        {
-            vihollistaulukko[j] = kivi;
-            Add(kivi);
-        }
-        else if (vihollistaulukko[j] != null)
-        {
-            kivi.Destroy();
-        }
-    }
-        
-
-    /// <summary>
-    /// Vihollisten luonti aliohjelma.
-    /// </summary>
-    /// <param name="leveys">Vihollisen leveys</param>
-    /// <param name="korkeus">Vihollisen koreus</param>
-    /// <param name="tag">Vihollisen Tag</param>
+    /// <param name="leveys">vihollisen leveys</param>
+    /// <param name="korkeus">vihollisen korkeus</param>
+    /// <param name="tag">vihollisen tagi</param>
     /// <param name="kulma">Kulma, jossa vihollisen kuva liitetään</param>
     /// <param name="arvo">Jättääkö törmäykset huomioimatta</param>
-    /// <returns></returns>
-    public PhysicsObject Viholliset(double leveys, double korkeus, string tag, int kulma, bool arvo, bool pyoriiko)
+    /// <param name="pyoriiko"><Voiko vihollinen pyöriä/param>
+    /// <param name="kuva">Vihollisen kuvan nimi</param>
+    /// <returns>Vihollisolio</returns>
+    public PhysicsObject LuoViholliset(double leveys, double korkeus, string tag, int kulma, bool arvo, bool pyoriiko, string kuva)
     {
+        int i = RandomGen.NextInt(-9, 9);
+        int j = i + 9;
+
         PhysicsObject vihollinen = new PhysicsObject(leveys, korkeus);
-        vihollinen.Y = kentanKorkeus / 2;
+        Image vihollisenkuva = LoadImage(kuva);
+        vihollinen.Image = vihollisenkuva;
+        vihollinen.Y = KENTÄN_KORKEUS / 2;
+        vihollinen.X = ((i * solunLeveys) + solunLeveys / 2);
         vihollinen.CanRotate = pyoriiko;
         vihollinen.Angle = Angle.FromDegrees(kulma);
         vihollinen.Tag = tag;
@@ -320,7 +282,26 @@ public class rakettipeli3 : PhysicsGame
         vihollinen.Hit(impulssi);
         vihollinen.IgnoresCollisionResponse = arvo;
         AddCollisionHandler(vihollinen, VihuTormasi);
-        return vihollinen;
+
+        Timer poistaOliotaulukosta = new Timer();
+        poistaOliotaulukosta.Interval = 1.0;
+        poistaOliotaulukosta.Timeout += delegate
+        {
+            vihollistaulukko[j] = null;
+            poistaOliotaulukosta.Stop();
+        };
+        poistaOliotaulukosta.Start();
+
+        if (vihollistaulukko[j] == null)
+        {
+            vihollistaulukko[j] = vihollinen;
+            return vihollinen;
+        }
+        else
+        {
+            vihollinen.Destroy();
+            return  null;
+        }
     }
 
 
@@ -355,8 +336,8 @@ public class rakettipeli3 : PhysicsGame
         topLista = DataStorage.TryLoad<ScoreList>(topLista, "pisteet.xml");
         raketti = LuoRaketti(0, 0, 0);
         Level.Background.Image = LoadImage("avaruus");
-        Level.Size = new Vector(kentanLeveys, kentanKorkeus);
-        SetWindowSize(kentanLeveys, 700);
+        Level.Size = new Vector(KENTÄN_LEVEYS, KENTÄN_KORKEUS);
+        SetWindowSize(KENTÄN_LEVEYS, 700);
         Level.CreateHorizontalBorders();
         Level.CreateTopBorder();
         alareuna = Level.CreateBottomBorder();
@@ -371,11 +352,13 @@ public class rakettipeli3 : PhysicsGame
             vihollissumma += 1;
             if (vihollissumma % 3 == 0)
             {
-                LuoSatunnainenKivi();
+                PhysicsObject kivi = LuoViholliset(60, 60, "kivi", 0, true, true, "kivi3");
+                if(kivi != null) Add(kivi);
             }
             else
             {
-                LuoSatunnainenVihollinen();
+                PhysicsObject vihu = LuoViholliset(70, 70, "palikka", 180, false, false, "vihu");
+                if(vihu != null) Add(vihu);
             }
         };
         synnytaOlioita.Start();
