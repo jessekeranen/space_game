@@ -8,6 +8,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Rakettipeli|AnyCPU' ">
+    <IntermediateOutputPath>obj\Rakettipeli</IntermediateOutputPath>
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Rakettipeli</OutputPath>
+    <DefineConstants></DefineConstants>
+    <NoWarn></NoWarn>
+    <NoStdLib>false</NoStdLib>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Jypeli.Core" Version="8.1.1" />
     <PackageReference Include="Jypeli.Physics2d.Core" Version="1.4.*" />
